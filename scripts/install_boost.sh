@@ -8,8 +8,6 @@ boostCache="$cache/$boostName"
 vendorDir="$rootDir/vendor"
 vendorBoostDir="$rootDir/vendor/boost"
 
-echo "dir: [$cache]"
-
 # Ensure the cache directory is writable
 [ -d $cache ] || mkdir $cache
 if [[ ! -e $cache ]]; then
@@ -47,17 +45,10 @@ if [[ ! -e $boost ]]; then
   exit -1
 fi
 
-# Delete cache content
-[ -d $boostCache ] && rm -rf $boostCache
-if [[ -e $boostCache ]]; then
-  echo "cannot refresh boost cache, directory [$boostCache] is not writable"
-  exit -1
-fi
-
 # Download boost sources
 cd $cache
 curl -sL https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz | tar zx
-cd -
+@cd -
 
 # Copy interprocess files
 cp -r "$boostCache/boost/interprocess" "$vendorBoostDir/boost/interprocess"
