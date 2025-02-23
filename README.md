@@ -89,6 +89,31 @@ client.Connect("my-unique-socket-identifier");
 client.Close();
 ```
 
+## How to build
+
+1. Start the container.
+2. Compile the sources.
+```shell
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make
+```
+3. (Optional) Installation the library
+```shell
+make install
+```
+
+## Examples
+
+- simple-program
+```shell
+./build/example/simple-program
+```
+Output
+```shell
+Hello, World!
+```
+
 ## Licence
 
 The licence is and will always remain MIT. The goal of this project is to enable anyone to do anything he wants with the code and it's usage.
