@@ -1,0 +1,5 @@
+/.idea/
+/scripts/.cache/
+/vendor/
+/cmake-build-*/
+/build/

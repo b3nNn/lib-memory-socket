@@ -25,8 +25,8 @@ The all-in-one solution doesn't exist and the closer one is [libsharedmemory](ht
 | Solution | Purpose |
 |--|--|
 | [boost](https://www.boost.org/) | shared memory management, buffering |
-| [lib-sodium](https://libsodium.gitbook.io/doc) | keys generator, encryption, decryption |
-| [object-box](https://cpp.objectbox.io/) | in-memory database |
+| [Libsodium](https://libsodium.gitbook.io/doc) | keys generator, encryption, decryption |
+| [ObjectBox](https://cpp.objectbox.io/) | in-memory database |
 
 ## The API Draft
 
@@ -88,6 +88,46 @@ client.Connect("my-unique-socket-identifier");
 // Close the socket.
 client.Close();
 ```
+
+## How to build
+
+1. Start the container.
+2. Compile the sources.
+```shell
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make
+```
+3. (Optional) Installation the library
+```shell
+make install
+```
+
+## Examples
+
+### simple-program
+A single producer - single consumer program.
+
+1. Start the consumer.
+```shell
+./build/example/simple-program
+```
+2. Start the producer with ```-p``` argument.
+```shell
+./build/example/simple-program -p
+```
+The output should be similar to this:
+```shell
+Processed: 'hello world'
+Processed: 'the answer is 42'
+Processed: 'where is your towel'
+```
+
+## Todo
+
+- [x] Boost integration.
+- [ ] Libsodium integration.
+- [ ] Objectbox integration.
 
 ## Licence
 
