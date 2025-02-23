@@ -12,7 +12,7 @@ The idea is to tackle the complexity by exposing a simple API inspired by the we
 
 Just don't reinvent the wheel. There's plenty of existing solution backed by strong actors that can match the technical requirements.
 
-The all-in-one solution does exists and the closer one is [libsharedmemory](https://github.com/kyr0/libsharedmemory). It's cross platform and use the shared memory for communication. But it miss the security layer, has no binary stream implemented and many more lacks. So, this project will be used as a strong reference and a fallback solution if things goes wrong.
+The all-in-one solution doesn't exist and the closer one is [libsharedmemory](https://github.com/kyr0/libsharedmemory). It's cross platform and use the shared memory for communication. But it miss the security layer, has no binary stream implemented and many more lacks. So, this project will be used as a strong reference and a fallback solution if things goes wrong.
 
 ### Requirements
 
@@ -30,7 +30,7 @@ The all-in-one solution does exists and the closer one is [libsharedmemory](http
 
 ## The API Draft
 
-The API architecture is traditional, the server is capable of receiving client connections, consume their data and respond with new data. An endpoint is defined by an identifier is similar to the host part inside a **URL**.
+The API architecture is traditional, the server is capable of receiving client connections, consume their data and respond with new data. An endpoint is defined by an identifier similarly to the host part inside a **URL**.
  There's no mechanism similar to handle a path as it would imply to implement a parameter system which is time consuming. Finally, the encryption is fully transparent for a standard user.
 
 ⚠ The following code is not functional and may contain errors. This code is not intended to be compiled.
@@ -56,7 +56,7 @@ server.OnData([] (auto socket, void *data, size_t size) {
 });
 
 // Listen for client connections.
-server.Listen("my-socket-identifier");
+server.Listen("my-unique-socket-identifier");
 
 // Close the socket.
 server.Close();
@@ -83,7 +83,7 @@ client.OnData([] (auto socket, void *data, size_t size) {
 });
 
 // Connect the socket.
-client.Connect("my-socket-identifier");
+client.Connect("my-unique-socket-identifier");
 
 // Close the socket.
 client.Close();
