@@ -92,13 +92,17 @@ client.Close();
 ## How to build
 
 1. Start the container.
-2. Compile the sources.
+2. Open a terminal and install ```boost``` sources.
+```shell
+./scripts/install_boost.sh
+```
+3. Compile the sources.
 ```shell
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
-3. (Optional) Installation the library
+4. (Optional) Installation the library
 ```shell
 make install
 ```
