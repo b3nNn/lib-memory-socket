@@ -3,8 +3,8 @@
 dir=$(dirname "$0")
 rootDir=$(dirname "$dir")
 cache="$dir/.cache"
-boostName=boost_1_87_0
-boostCache="$cache/$boostName"
+sodiumName=libsodium-stable
+sodiumCache="$cache/$sodiumName"
 vendorDir="$rootDir/vendor"
 
 # Ensure the cache directory is writable
@@ -22,13 +22,18 @@ if [[ ! -e $vendorDir ]]; then
 fi
 
 
-# Download boost sources
+# Download libsodium sources
 cd $cache
-curl -sL https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz | tar zx
+curl -sL https://download.libsodium.org/libsodium/releases/libsodium-1.0.20-stable.tar.gz | tar zx
 cd -
 
-# Copy boost
-cp -r "$boostCache/boost" "$vendorDir"
+cd $sodiumCache
+./configure
+make && make check
+cd -
+
+# Copy libsodium
+cp -r "$sodiumCache/src/libsodium" "$vendorDir"
 
 # Finally, clear the cache
-rm -rf $boostCache
+rm -rf $sodiumCache
