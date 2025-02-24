@@ -92,13 +92,17 @@ client.Close();
 ## How to build
 
 1. Start the container.
-2. Compile the sources.
+2. Open a terminal and install ```boost``` sources.
+```shell
+./scripts/install_boost.sh
+```
+3. Compile the sources.
 ```shell
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
-3. (Optional) Installation the library
+4. (Optional) Installation the library
 ```shell
 make install
 ```
@@ -118,9 +122,14 @@ A single producer - single consumer program.
 ```
 The output should be similar to this:
 ```shell
-Processed: 'hello world'
-Processed: 'the answer is 42'
-Processed: 'where is your towel'
+produced 1M messages
+produced 2M messages
+produced 3M messages
+produced 4M messages
+produced 5M messages
+produced 6M messages
+produced 7M messages
+[...]
 ```
 
 ## Todo
