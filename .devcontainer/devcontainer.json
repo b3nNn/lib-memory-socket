@@ -1,7 +1,7 @@
 {
   "image": "cpp-devcontainer:latest",
   "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"],
-  "runArgs": ["--env-file",".env", "--add-host=host.docker.internal:host-gateway"],
+  "runArgs": ["--env-file",".env", "--add-host=host.docker.internal:host-gateway", "--cpus=6", "--memory=8g"],
   "features": {
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest",
