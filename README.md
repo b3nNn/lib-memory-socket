@@ -122,9 +122,14 @@ A single producer - single consumer program.
 ```
 The output should be similar to this:
 ```shell
-Processed: 'hello world'
-Processed: 'the answer is 42'
-Processed: 'where is your towel'
+produced 1M messages
+produced 2M messages
+produced 3M messages
+produced 4M messages
+produced 5M messages
+produced 6M messages
+produced 7M messages
+[...]
 ```
 
 ## Todo
