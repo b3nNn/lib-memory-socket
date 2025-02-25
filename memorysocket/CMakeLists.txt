@@ -8,6 +8,7 @@ add_library(memorysocket SHARED memory_socket.cpp
         ServerSocket.cpp
         ServerSocket.h
         ClientSocket.cpp
-        ClientSocket.h)
+        ClientSocket.h
+        ISocket.h)
 set_target_properties(memorysocket PROPERTIES PUBLIC_HEADER memory_socket.h)
 install(TARGETS memorysocket)
