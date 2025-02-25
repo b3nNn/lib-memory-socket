@@ -153,6 +153,11 @@ consumed 10k messages
 - [x] Boost integration.
 - [x] Libsodium integration.
 - [ ] Objectbox integration.
+- [ ] MacOS support.
+- [ ] Windows support.
+
+## Known issues
+- CMake build on Windows fail.
 
 ## Licence
 
