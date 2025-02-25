@@ -37,15 +37,15 @@ _endpoint(), _abortRequested(false), _pk("3BrJvM6piGcCXJWK1Q+mpm0iwrZe4G2B/eT2dg
 ServerSocket::~ServerSocket() {
     if (_endpoint.length() && _hasOwnership)
     {
-        bip::managed_shared_memory segment(bip::open_only, _endpoint.c_str());
+        bip::message_queue mq(bip::open_only, _endpoint.c_str());
 
         try
         {
             bip::shared_memory_object::remove(_endpoint.c_str());
         }
-        catch (boost::interprocess::lock_exception& _)
+        catch (bip::interprocess_exception& _)
         {
-            std::cerr << "mem lock exception" << std::endl;
+            std::cerr << "interprocess exception" << std::endl;
         }
         catch (std::exception& ex)
         {
@@ -55,87 +55,19 @@ ServerSocket::~ServerSocket() {
 }
 
 int ServerSocket::Listen(const std::string &endpoint) {
-    // Ringbuffer fully constructed in shared memory. The element strings are
-    // also allocated from the same shared memory segment. This vector can be
-    // safely accessed from other processes.
-    shm::ring_buffer *upstream = nullptr;
-
-    auto recovery = false;
-    try
-    {
-        _endpoint = endpoint;
-        bip::managed_shared_memory segment(bip::create_only, endpoint.c_str(), 65536);
-        bip::shared_memory_object::remove(endpoint.c_str());
-    }
-    catch (boost::interprocess::lock_exception& _)
-    {
-        std::cerr << "socket is busy" << std::endl;
-        return -1;
-    }
-    catch (std::exception& ex)
-    {
-        recovery = true;
-        std::cerr << "socket is busy: " << ex.what() << std::endl;
-    }
-
-    if (recovery)
-    {
-        try {
-            bip::managed_shared_memory segment(bip::open_only, endpoint.c_str());
-            auto res = segment.find<shm::shared_string>("pk");
-            auto ts = segment.find<uint64_t>("ts");
-            if (res.second == 0 || ts.second == 0)
-            {
-                std::cout << "recover no public key or ts" << std::endl;
-                bip::shared_memory_object::remove(endpoint.c_str());
-            }
-            else
-            {
-                std::string pk(res.first->begin(), res.first->end());
-                std::cout << "recover public key: [" << pk  << "]" << std::endl;
-                std::cout << "recover ts: " << *ts.first << std::endl;
-
-                if (pk != _pk)
-                {
-                    return -1;
-                }
-
-                std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(
-                    std::chrono::system_clock::now().time_since_epoch()
-                );
-
-                std::cout << "public keys are matching" << std::endl;
-
-                if ((ms.count() - *ts.first) < 15000) // 15 seconds
-                {
-                    std::cout << "timeout period not yet expired" << std::endl;
-                    return -1;
-                }
-
-                bip::shared_memory_object::remove(endpoint.c_str());
-            }
-        }
-        catch (std::exception& ex)
-        {
-            std::cerr << "socket is busy: " << ex.what() << std::endl;
-            return -1;
-        }
-    }
+    _endpoint = endpoint;
 
     try
     {
         std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(
             std::chrono::system_clock::now().time_since_epoch()
         );
-        bip::managed_shared_memory segment(bip::create_only, endpoint.c_str(), 65536);
+        bip::message_queue mq(bip::create_only, endpoint.c_str(), 100, 1000);
         _hasOwnership = true;
-        auto pk = segment.construct<shm::shared_string>("pk")(_pk.c_str(), segment.get_segment_manager());
-        upstream = segment.construct<shm::ring_buffer>("upstream")();
-        auto ts = segment.construct<uint64_t>("ts")(ms.count());
     }
-    catch (boost::interprocess::lock_exception& _)
+    catch (bip::interprocess_exception& _)
     {
-        std::cerr << "mem lock exception" << std::endl;
+        std::cerr << "interprocess exception" << std::endl;
         return -1;
     }
     catch (std::exception& ex)
@@ -144,48 +76,56 @@ int ServerSocket::Listen(const std::string &endpoint) {
         return -1;
     }
 
-    if (upstream == nullptr)
-    {
-        return -1;
-    }
-
     return this->ListenForever();
+}
+
+// Help print a message in buffer
+void print_message(char *buffer, size_t size)
+{
+    char msg[size + 1];
+
+    memcpy(msg, buffer, size);
+    msg[size] = '\0';
+    std::cout << "received : [" << msg << "]" << std::endl;
 }
 
 int ServerSocket::ListenForever()
 {
     // create segment and corresponding allocator
-    bip::managed_shared_memory segment(bip::open_only, _endpoint.c_str());
-    shm::char_alloc char_alloc(segment.get_segment_manager());
-    // Ringbuffer fully constructed in shared memory. The element strings are
-    // also allocated from the same shared memory segment. This vector can be
-    // safely accessed from other processes.
-    auto res = segment.find<shm::ring_buffer>("upstream");
-    auto ts = segment.find<uint64_t>("ts");
+    bip::message_queue mq(bip::open_only, _endpoint.c_str());
 
-    if (!res.second || !ts.second)
-    {
-        return -1;
-    }
-
-    std::cout << "ts is: " << *ts.first << std::endl;
+    // std::cout << "ts is: " << *ts.first << std::endl;
     auto counter = 0;
     while (!_abortRequested)
     {
         std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(
             std::chrono::system_clock::now().time_since_epoch()
         );
-        *ts.first = ms.count();
-        shm::shared_string v(char_alloc);
-        if (!res.first->pop(v))
+        char buffer[1000];
+        unsigned int priority;
+        bip::message_queue::size_type recvd_size;
+        try
         {
-            continue;
+            if (!mq.try_receive(&buffer, 1000, recvd_size, priority))
+            {
+                continue;
+            }
+        }
+        catch (bip::interprocess_exception& _)
+        {
+            std::cerr << "interprocess exception" << std::endl;
+            return -1;
+        }
+        catch (std::exception& ex)
+        {
+            std::cerr << "unknown exception: " << ex.what() << std::endl;
+            return -1;
         }
 
         counter++;
-        if ((counter % 1000000) == 0)
+        if ((counter % 1000) == 0)
         {
-            std::cout << "consumed " << counter / 1000000 << "M messages" << std::endl;
+            std::cout << "consumed " << counter / 1000 << "k messages" << std::endl;
         }
     }
     return 0;

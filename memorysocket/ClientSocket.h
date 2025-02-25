@@ -13,6 +13,7 @@ public:
     ClientSocket();
     ~ClientSocket() override;
     int Connect(const std::string &endpoint);
+    int Write(const void *data, size_t data_size);
     void Abort() override;
 private:
     std::string _uid;

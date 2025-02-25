@@ -12,11 +12,11 @@ _uid(), _endpoint(), _abortRequested(false) {
 ClientSocket::~ClientSocket() {
     if (_uid.length()) {
         try {
-            bip::shared_memory_object::remove(_uid.c_str());
+            bip::message_queue::remove(_uid.c_str());
         }
-        catch (boost::interprocess::lock_exception& _)
+        catch (bip::interprocess_exception & _)
         {
-            std::cerr << "mem lock exception" << std::endl;
+            std::cerr << "interprocess exception" << std::endl;
         }
         catch (std::exception& ex)
         {
@@ -27,31 +27,16 @@ ClientSocket::~ClientSocket() {
 
 int ClientSocket::Connect(const std::string &endpoint)
 {
-    // create segment and corresponding allocator
-    auto rand = randombytes_random();
-    std::stringstream ss;
-    std::string uid;
-    ss << rand;
-    ss >> uid;
-
-    std::cout << "client id: " << uid << std::endl;
-    // Ringbuffer fully constructed in shared memory. The element strings are
-    // also allocated from the same shared memory segment. This vector can be
-    // safely accessed from other processes.
-    shm::ring_buffer *upstream = nullptr;
+    std::cout << "client id: " << _uid << std::endl;
 
     _endpoint = endpoint;
     try
     {
-        bip::managed_shared_memory segment(bip::open_only, endpoint.c_str());
-        auto res = segment.find<shm::ring_buffer>("upstream");
-        if (res.second == 0) {
-            return -1;
-        }
+        bip::message_queue mq(bip::open_only, endpoint.c_str());
     }
-    catch (boost::interprocess::lock_exception& _)
+    catch (bip::interprocess_exception& _)
     {
-        std::cerr << "mem lock exception" << std::endl;
+        std::cerr << "interprocess exception" << std::endl;
         return -1;
     }
     catch (std::exception& ex)
@@ -62,16 +47,11 @@ int ClientSocket::Connect(const std::string &endpoint)
 
     try
     {
-        bip::managed_shared_memory segment(bip::create_only, uid.c_str(), 65536);
-        upstream = segment.construct<shm::ring_buffer>("upstream")();
-        if (upstream == nullptr)
-        {
-            bip::shared_memory_object::remove(uid.c_str());
-        }
+        bip::message_queue mq(bip::create_only, _uid.c_str(), 100, 1000);
     }
-    catch (boost::interprocess::lock_exception& _)
+    catch (bip::interprocess_exception& _)
     {
-        std::cerr << "mem lock exception" << std::endl;
+        std::cerr << "interprocess exception" << std::endl;
         return -1;
     }
     catch (std::exception& ex)
@@ -80,12 +60,33 @@ int ClientSocket::Connect(const std::string &endpoint)
         return -1;
     }
 
-    if (upstream == nullptr)
+    return 0;
+}
+
+int ClientSocket::Write(const void *data, size_t data_size)
+{
+    if (_endpoint.length() == 0)
     {
-        return -1;
+        return 0;
     }
 
-    return 0;
+    try
+    {
+        bip::message_queue mq(bip::open_only, _endpoint.c_str());
+        mq.send(data, data_size, 0);
+    }
+    catch (bip::interprocess_exception& ex)
+    {
+        std::cerr << "interprocess exception: " << ex.what() << std::endl;
+        return 0;
+    }
+    catch (std::exception& ex)
+    {
+        std::cerr << "unknown exception: " << ex.what() << std::endl;
+        return 0;
+    }
+
+    return data_size;
 }
 
 void ClientSocket::Abort()
