@@ -15,7 +15,7 @@ namespace shm
 
     typedef boost::lockfree::spsc_queue<
         shared_string,
-        boost::lockfree::capacity<100>
+        boost::lockfree::capacity<1850>
     > ring_buffer;
 }
 

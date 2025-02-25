@@ -1,10 +1,11 @@
 #include "ServerSocket.h"
 #include "sodium.h"
+#include <chrono>
 #include <iostream>
 #include <sstream>
 
 ServerSocket::ServerSocket() :
-_endpoint(), _abortRequested(false), _pk("3BrJvM6piGcCXJWK1Q+mpm0iwrZe4G2B/eT2dgaceao=")
+_endpoint(), _abortRequested(false), _pk("3BrJvM6piGcCXJWK1Q+mpm0iwrZe4G2B/eT2dgaceao="), _hasOwnership(false)
 {
     if (_pk.empty())
     {
@@ -34,7 +35,7 @@ _endpoint(), _abortRequested(false), _pk("3BrJvM6piGcCXJWK1Q+mpm0iwrZe4G2B/eT2dg
 }
 
 ServerSocket::~ServerSocket() {
-    if (_endpoint.length())
+    if (_endpoint.length() && _hasOwnership)
     {
         bip::managed_shared_memory segment(bip::open_only, _endpoint.c_str());
 
@@ -82,22 +83,35 @@ int ServerSocket::Listen(const std::string &endpoint) {
         try {
             bip::managed_shared_memory segment(bip::open_only, endpoint.c_str());
             auto res = segment.find<shm::shared_string>("pk");
-            if (res.second == 0)
+            auto ts = segment.find<uint64_t>("ts");
+            if (res.second == 0 || ts.second == 0)
             {
-                std::cout << "recover no public key" << std::endl;
+                std::cout << "recover no public key or ts" << std::endl;
                 bip::shared_memory_object::remove(endpoint.c_str());
             }
             else
             {
                 std::string pk(res.first->begin(), res.first->end());
                 std::cout << "recover public key: [" << pk  << "]" << std::endl;
+                std::cout << "recover ts: " << *ts.first << std::endl;
 
                 if (pk != _pk)
                 {
                     return -1;
                 }
 
+                std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+                    std::chrono::system_clock::now().time_since_epoch()
+                );
+
                 std::cout << "public keys are matching" << std::endl;
+
+                if ((ms.count() - *ts.first) < 15000) // 15 seconds
+                {
+                    std::cout << "timeout period not yet expired" << std::endl;
+                    return -1;
+                }
+
                 bip::shared_memory_object::remove(endpoint.c_str());
             }
         }
@@ -110,9 +124,14 @@ int ServerSocket::Listen(const std::string &endpoint) {
 
     try
     {
+        std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()
+        );
         bip::managed_shared_memory segment(bip::create_only, endpoint.c_str(), 65536);
+        _hasOwnership = true;
         auto pk = segment.construct<shm::shared_string>("pk")(_pk.c_str(), segment.get_segment_manager());
         upstream = segment.construct<shm::ring_buffer>("upstream")();
+        auto ts = segment.construct<uint64_t>("ts")(ms.count());
     }
     catch (boost::interprocess::lock_exception& _)
     {
@@ -142,15 +161,21 @@ int ServerSocket::ListenForever()
     // also allocated from the same shared memory segment. This vector can be
     // safely accessed from other processes.
     auto res = segment.find<shm::ring_buffer>("upstream");
+    auto ts = segment.find<uint64_t>("ts");
 
-    if (!res.second)
+    if (!res.second || !ts.second)
     {
         return -1;
     }
 
+    std::cout << "ts is: " << *ts.first << std::endl;
     auto counter = 0;
     while (!_abortRequested)
     {
+        std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()
+        );
+        *ts.first = ms.count();
         shm::shared_string v(char_alloc);
         if (!res.first->pop(v))
         {

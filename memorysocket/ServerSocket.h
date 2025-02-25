@@ -19,6 +19,7 @@ private:
     std::string _endpoint;
     std::string _pk;
     bool        _abortRequested;
+    bool        _hasOwnership;
 };
 
 #endif //LIB_MEMORY_SOCKET_SERVERSOCKET_H

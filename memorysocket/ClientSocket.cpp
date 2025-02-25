@@ -1,7 +1,7 @@
 #include "ClientSocket.h"
 
 ClientSocket::ClientSocket() :
-_uid(), _endpoint() {
+_uid(), _endpoint(), _abortRequested(false) {
     auto rand = randombytes_random();
     std::stringstream ss;
 
@@ -10,13 +10,9 @@ _uid(), _endpoint() {
 }
 
 ClientSocket::~ClientSocket() {
-    if (_endpoint.length()) {
+    if (_uid.length()) {
         try {
-            bip::managed_shared_memory segment(bip::open_only, _endpoint.c_str());
-            auto res = segment.find<shm::ring_buffer>(_uid.c_str());
-            if (res.second == 1) {
-                segment.destroy<shm::ring_buffer>(_uid.c_str());
-            }
+            bip::shared_memory_object::remove(_uid.c_str());
         }
         catch (boost::interprocess::lock_exception& _)
         {
@@ -44,15 +40,34 @@ int ClientSocket::Connect(const std::string &endpoint)
     // safely accessed from other processes.
     shm::ring_buffer *upstream = nullptr;
 
+    _endpoint = endpoint;
     try
     {
-        _endpoint = endpoint;
         bip::managed_shared_memory segment(bip::open_only, endpoint.c_str());
         auto res = segment.find<shm::ring_buffer>("upstream");
         if (res.second == 0) {
             return -1;
         }
-        upstream = segment.construct<shm::ring_buffer>(uid.c_str())();
+    }
+    catch (boost::interprocess::lock_exception& _)
+    {
+        std::cerr << "mem lock exception" << std::endl;
+        return -1;
+    }
+    catch (std::exception& ex)
+    {
+        std::cerr << "unknown exception: " << ex.what() << std::endl;
+        return -1;
+    }
+
+    try
+    {
+        bip::managed_shared_memory segment(bip::create_only, uid.c_str(), 65536);
+        upstream = segment.construct<shm::ring_buffer>("upstream")();
+        if (upstream == nullptr)
+        {
+            bip::shared_memory_object::remove(uid.c_str());
+        }
     }
     catch (boost::interprocess::lock_exception& _)
     {
