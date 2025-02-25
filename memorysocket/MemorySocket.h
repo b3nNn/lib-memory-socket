@@ -9,7 +9,4 @@ namespace ipc
     typedef bip::message_queue message_queue;
 }
 
-void producer();
-void consumer();
-
 #endif //LIB_MEMORY_SOCKET_MEMORY_SOCKET_H

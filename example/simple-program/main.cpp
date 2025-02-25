@@ -1,4 +1,4 @@
-#include "memory_socket.h"
+#include "MemorySocket.h"
 #include "ServerSocket.h"
 #include "ClientSocket.h"
 #include "sodium.h"
@@ -46,7 +46,6 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        // producer();
         delete client;
     }
     else
@@ -56,7 +55,6 @@ int main(int argc, char **argv) {
         if (socket->Listen("my-endpoint") != 0) {
             std::cout << "socket is busy" << std::endl;
         }
-        // consumer();
         delete socket;
     }
 

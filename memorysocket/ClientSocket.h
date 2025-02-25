@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "ISocket.h"
-#include "memory_socket.h"
+#include "MemorySocket.h"
 #include "sodium.h"
 
 class ClientSocket : public ISocket {
