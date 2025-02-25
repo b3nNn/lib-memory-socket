@@ -77,13 +77,20 @@ client.OnData([] (auto socket, void *data, size_t size) {
     // Consume data received from client socket. This is the data sent from a server socket.
 
     auto msg = "Hello from client";
-    if (socket.Write(msg.c_str(), msg.length()) != 0) {
+    if (socket.Write(msg.c_str(), msg.length()) == 0) {
         // Handle write errors.
     }
 });
 
 // Connect the socket.
-client.Connect("my-unique-socket-identifier");
+if (client.Connect("my-unique-socket-identifier") != 0) {
+    // Handle connection error.
+}
+
+std::string msg("hello memory world");
+if (client->Write(msg.c_str(), msg.length()) == 0) {
+    // Handle connection error.
+}
 
 // Close the socket.
 client.Close();
@@ -91,12 +98,18 @@ client.Close();
 
 ## How to build
 
-1. Start the container.
-2. Open a terminal and install ```boost``` sources.
+1. Start the devcontainer.
+2. Install `boost` sources.
 ```shell
 ./scripts/install_boost.sh
 ```
-3. Compile the sources.
+Installation location is `vendor/boost`.
+3. Install `libsodium` sources and compile.
+```shell
+./scripts/install_libsodium.sh
+```
+Installation location is `libsodium`.
+4. Compile the sources.
 ```shell
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -120,23 +133,31 @@ A single producer - single consumer program.
 ```shell
 ./build/example/simple-program -p
 ```
-The output should be similar to this:
+The consumer's output should be similar to this:
 ```shell
-produced 1M messages
-produced 2M messages
-produced 3M messages
-produced 4M messages
-produced 5M messages
-produced 6M messages
-produced 7M messages
+consumed 1k messages
+consumed 2k messages
+consumed 3k messages
+consumed 4k messages
+consumed 5k messages
+consumed 6k messages
+consumed 7k messages
+consumed 8k messages
+consumed 9k messages
+consumed 10k messages
 [...]
 ```
 
 ## Todo
 
 - [x] Boost integration.
-- [ ] Libsodium integration.
+- [x] Libsodium integration.
 - [ ] Objectbox integration.
+- [ ] MacOS support.
+- [ ] Windows support.
+
+## Known issues
+- CMake build on Windows fail.
 
 ## Licence
 
