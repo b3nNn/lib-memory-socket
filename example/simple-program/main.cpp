@@ -19,10 +19,12 @@ int main(int argc, char **argv) {
     if (sodium_init() < 0) {
         return -1;
     }
+
     // Install a signal handler
     std::signal(SIGINT, signal_abort_handler);
     std::signal(SIGTERM, signal_abort_handler);
     std::signal(SIGABRT, signal_abort_handler);
+    std::signal(SIGHUP, signal_abort_handler);
 
     if (argc > 1 && strcasecmp(argv[1], "-p") == 0)
     {
