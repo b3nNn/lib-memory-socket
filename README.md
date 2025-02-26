@@ -150,10 +150,10 @@ consumed 10k messages
 - [ ] Dedicated devcontainer image with dependencies included.
 - [x] Linux support.
 - [ ] MacOS support.
-- [ ] Windows support.
+- [x] Windows support. _(documentation coming next)_
 
 ## Known issues
-- CMake build on Windows fail.
+~~- CMake build on Windows fail.~~
 
 ## Licence
 
