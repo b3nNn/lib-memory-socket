@@ -98,24 +98,18 @@ client.Close();
 
 ## How to build
 
-1. Start the devcontainer.
-2. Install `boost` sources.
+1. Start a devcontainer. (Building instructions: [b3nNn/cpp-devcontainer](https://github.com/b3nNn/cpp-devcontainer)).
+2. Open a terminal, then install `boost` and `libsodium`.
 ```shell
-./scripts/install_boost.sh
+sudo apt-get install libsodium23 libsodium-dev libboost-all-dev
 ```
-Installation location is `vendor/boost`.
-3. Install `libsodium` sources and compile.
-```shell
-./scripts/install_libsodium.sh
-```
-Installation location is `libsodium`.
-4. Compile the sources.
+3. Compile the sources.
 ```shell
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
-4. (Optional) Installation the library
+4. (Optional) Install the library `libmemorysocket` on the system.
 ```shell
 make install
 ```
@@ -153,6 +147,8 @@ consumed 10k messages
 - [x] Boost integration.
 - [x] Libsodium integration.
 - [ ] Objectbox integration.
+- [ ] Dedicated devcontainer image with dependencies included.
+- [x] Linux support.
 - [ ] MacOS support.
 - [ ] Windows support.
 

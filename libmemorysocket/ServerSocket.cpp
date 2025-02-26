@@ -4,32 +4,21 @@
 #include <iostream>
 #include <sstream>
 
-ServerSocket::ServerSocket() :
-_endpoint(), _abortRequested(false), _pk("3BrJvM6piGcCXJWK1Q+mpm0iwrZe4G2B/eT2dgaceao="), _hasOwnership(false)
+ServerSocket::ServerSocket(const ServerConfiguration &config) :
+_endpoint(), _abortRequested(false), _pk("3BrJvM6piGcCXJWK1Q+mpm0iwrZe4G2B/eT2dgaceao="), _hasOwnership(false), _config(config)
 {
-    if (_pk.empty())
+    if (_config.GetPublicKey().empty())
     {
         unsigned char pk[crypto_sign_PUBLICKEYBYTES];
         unsigned char sk[crypto_sign_SECRETKEYBYTES];
 
-        std::stringstream ss;
         crypto_sign_keypair(pk, sk);
 
-        const size_t bin_len = sizeof(pk);
-        const size_t  base64_max_len = sodium_base64_encoded_len(bin_len, sodium_base64_VARIANT_ORIGINAL);
-        std::string base64_str(base64_max_len-1,0);
-        char *encoded_str_char = sodium_bin2base64(
-                 base64_str.data(),
-                 base64_max_len,
-                 pk,
-                 bin_len,
-                 sodium_base64_VARIANT_ORIGINAL
-         );
+        char *encoded_str_char = Base64Encoding::Encode(&pk, sizeof(pk));
 
-        if (encoded_str_char == NULL) {
-            std::cerr << "base64 error" << std::endl;
+        if (encoded_str_char == nullptr) {
+            throw "base64 error";
         }
-        _pk = std::string(encoded_str_char);
         std::cout << "public key is: [" << _pk << "]" << std::endl;
     }
 }
