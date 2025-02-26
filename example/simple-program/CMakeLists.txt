@@ -6,3 +6,7 @@ add_executable(simple_program main.cpp)
 include_directories(simple_program ${CMAKE_CURRENT_SOURCE_DIR}/../../libmemorysocket)
 include_directories(simple_program ${sodium_INCLUDE_DIR})
 target_link_libraries(simple_program memorysocket ${sodium_LIBRARY_RELEASE})
+
+if (WIN32)
+    include_directories(simple_program PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../vendor)
+endif()

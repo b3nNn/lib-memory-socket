@@ -3,6 +3,12 @@
 #include "ClientSocket.h"
 #include "sodium.h"
 
+#ifdef _MSC_VER
+//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
 std::shared_ptr<ISocket> gl_socket = nullptr;
 bool gl_abort_requested = false;
 
@@ -17,7 +23,6 @@ static void signal_abort_handler(int signum)
 }
 
 int main(int argc, char **argv) {
-
     if (sodium_init() < 0) {
         return -1;
     }
@@ -26,8 +31,9 @@ int main(int argc, char **argv) {
     std::signal(SIGINT, signal_abort_handler);
     std::signal(SIGTERM, signal_abort_handler);
     std::signal(SIGABRT, signal_abort_handler);
+#ifndef WIN32
     std::signal(SIGHUP, signal_abort_handler);
-
+#endif
     if (argc > 1 && strcasecmp(argv[1], "-p") == 0)
     {
         auto pk = "";

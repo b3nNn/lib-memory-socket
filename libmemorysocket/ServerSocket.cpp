@@ -68,16 +68,6 @@ int ServerSocket::Listen(const std::string &endpoint) {
     return this->ListenForever();
 }
 
-// Help print a message in buffer
-void print_message(char *buffer, size_t size)
-{
-    char msg[size + 1];
-
-    memcpy(msg, buffer, size);
-    msg[size] = '\0';
-    std::cout << "received : [" << msg << "]" << std::endl;
-}
-
 int ServerSocket::ListenForever()
 {
     // create segment and corresponding allocator

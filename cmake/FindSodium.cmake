@@ -114,6 +114,7 @@ elseif (WIN32)
         )
         string(REGEX REPLACE ".*ARCH_VALUE ([a-zA-Z0-9_]+).*" "\\1" _TARGET_ARCH "${_COMPILATION_LOG}")
 
+        set(_PLATFORM_PATH "")
         # construct library path
         if (_TARGET_ARCH STREQUAL "x86_32")
             string(APPEND _PLATFORM_PATH "Win32")
