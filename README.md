@@ -4,13 +4,19 @@
 
 This project was a workshop with the idea to dive into the communication between processes and threads. The problem was simple: How could programs wrote in different languages communicate together on the same machine and what level of pain it is for developers?
 
-So I take my C++ skills because this language is compatible with all others. I've spent few days finding existing libraries and testing them across Windows and Linux platforms. And as planned, no blocking issue was encountered. Just basic compilation things mainly, not even a segmentation fault 🤔.
+So I took my C++ skills because this language is compatible with all others. I've spent few days finding existing libraries and testing them across Windows and Linux platforms. And as planned, no blocking issue was encountered. Just basic compilation things mainly, not even a segmentation fault 🤔.
 
 In less than a week, a simple API was drafted and implemented. It was possible to establish a connection between 2 peers and send messages at lightning speed. And, a security system was designed based on asymmetric keys, backed by a robust solution.
+
+At this point, the responses to the initial question were found. Having another project in mind, I decided to switch and write a new story.
 
 **[SPOILER]**
 
 The response to the initial problem: The communication between processes and threads is called `inter-process communication` can be achieved using a `named pipe`. It's supported for years on Windows and Unix systems including MacOS. The C++ implementation can be done with robust and maintained libraries like `boost` or `libuv` and the integration is very easy.
+
+The security is not a concern as there's open source solution like `libsodium`. It allow developers to implement a robust security layer without prior knowledge in the security domain, except what's `hashing`, `signatures` and `encryption/decryption` with keys.
+
+Finally, inter-process communication is widely used in the software industry. Especially in a scenario where programs require to react from requests or events on the same machine and as fast as possible. (See [SQL Server](https://learn.microsoft.com/en-us/sql/database-engine/configure-windows/run-sql-server-with-or-without-a-network?view=sql-server-ver16), [D-Bus](https://en.wikipedia.org/wiki/D-Bus))
 
 ## Why ```lib-memory-socket```?
 
