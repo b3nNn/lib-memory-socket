@@ -1,6 +1,16 @@
 # lib-memory-socket
 
-This project is, for now, an attempt to simplify the communication between processes and threads.
+## Retrospective
+
+This project was a workshop with the idea to dive into the communication between processes and threads. The problem was simple: How could programs wrote in different languages communicate together on the same machine and what level of pain it is for developers?
+
+So I take my C++ skills because this language is compatible with all others. I've spent few days finding existing libraries and testing them across Windows and Linux platforms. And as planned, no blocking issue was encountered. Just basic compilation things mainly, not even a segmentation fault 🤔.
+
+In less than a week, a simple API was drafted and implemented. It was possible to establish a connection between 2 peers and send messages at lightning speed. And, a security system was designed based on asymmetric keys, backed by a robust solution.
+
+**[SPOILER]**
+
+The response to the initial problem: The communication between processes and threads is called `inter-process communication` can be achieved using a `named pipe`. It's supported for years on Windows and Unix systems including MacOS. The C++ implementation can be done with robust and maintained libraries like `boost` or `libuv` and the integration is very easy.
 
 ## Why ```lib-memory-socket```?
 
