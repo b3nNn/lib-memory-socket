@@ -1,7 +1,7 @@
 #include "ClientSocket.h"
 
-ClientSocket::ClientSocket() :
-_uid(), _endpoint(), _abortRequested(false) {
+ClientSocket::ClientSocket(const ClientConfiguration &configuration) :
+_uid(), _endpoint(), _abortRequested(false), _config(configuration) {
     auto rand = randombytes_random();
     std::stringstream ss;
 

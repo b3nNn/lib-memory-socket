@@ -3,7 +3,13 @@
 #include "ClientSocket.h"
 #include "sodium.h"
 
-ISocket *gl_socket = nullptr;
+#ifdef _MSC_VER
+//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
+std::shared_ptr<ISocket> gl_socket = nullptr;
 bool gl_abort_requested = false;
 
 static void signal_abort_handler(int signum)
@@ -17,7 +23,6 @@ static void signal_abort_handler(int signum)
 }
 
 int main(int argc, char **argv) {
-
     if (sodium_init() < 0) {
         return -1;
     }
@@ -26,11 +31,14 @@ int main(int argc, char **argv) {
     std::signal(SIGINT, signal_abort_handler);
     std::signal(SIGTERM, signal_abort_handler);
     std::signal(SIGABRT, signal_abort_handler);
+#ifndef WIN32
     std::signal(SIGHUP, signal_abort_handler);
-
+#endif
     if (argc > 1 && strcasecmp(argv[1], "-p") == 0)
     {
-        auto client = new ClientSocket();
+        auto pk = "";
+        auto config = std::make_unique<ClientConfiguration>(pk);
+        auto client = std::make_shared<ClientSocket>(*config);
         gl_socket = client;
         if (client->Connect("my-endpoint") != 0) {
             std::cout << "server is unreachable" << std::endl;
@@ -46,17 +54,20 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        delete client;
     }
     else
     {
-        auto socket = new ServerSocket();
+        auto pk = "3BrJvM6piGcCXJWK1Q+mpm0iwrZe4G2B/eT2dgaceao=";
+        auto authorizedKeys = std::vector<std::string>{};
+        auto config = std::make_unique<ServerConfiguration>(pk, authorizedKeys);
+        auto socket = std::make_shared<ServerSocket>(*config);
         gl_socket = socket;
         if (socket->Listen("my-endpoint") != 0) {
             std::cout << "socket is busy" << std::endl;
         }
-        delete socket;
     }
+
+    gl_socket = nullptr;
 
     return 0;
 }
